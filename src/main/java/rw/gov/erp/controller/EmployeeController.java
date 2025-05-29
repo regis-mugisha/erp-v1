@@ -37,27 +37,27 @@ public class EmployeeController {
         return ResponseEntity.ok(employeeService.getAllEmployees());
     }
 
-    @Operation(summary = "Get employee by code", description = "Retrieves an employee by their code")
-    @GetMapping("/{code}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER') or @securityService.isCurrentUser(#code)")
-    public ResponseEntity<EmployeeResponse> getEmployeeByCode(@PathVariable String code) {
-        return ResponseEntity.ok(employeeService.getEmployeeByCode(code));
+    @Operation(summary = "Get employee by ID", description = "Retrieves an employee by their ID")
+    @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER') or @securityService.isCurrentUser(#id)")
+    public ResponseEntity<EmployeeResponse> getEmployeeById(@PathVariable Long id) {
+        return ResponseEntity.ok(employeeService.getEmployeeById(id));
     }
 
     @Operation(summary = "Update employee", description = "Updates an existing employee's details")
-    @PutMapping("/{code}")
+    @PutMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ResponseEntity<EmployeeResponse> updateEmployee(
-            @PathVariable String code,
+            @PathVariable Long id,
             @Valid @RequestBody EmployeeRequest request) {
-        return ResponseEntity.ok(employeeService.updateEmployee(code, request));
+        return ResponseEntity.ok(employeeService.updateEmployee(id, request));
     }
 
-    @Operation(summary = "Delete employee", description = "Deletes an employee by their code")
-    @DeleteMapping("/{code}")
+    @Operation(summary = "Delete employee", description = "Deletes an employee by their ID")
+    @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Void> deleteEmployee(@PathVariable String code) {
-        employeeService.deleteEmployee(code);
+    public ResponseEntity<Void> deleteEmployee(@PathVariable Long id) {
+        employeeService.deleteEmployee(id);
         return ResponseEntity.noContent().build();
     }
 }

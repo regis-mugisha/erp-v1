@@ -8,7 +8,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
-import rw.gov.erp.entity.User;
+import rw.gov.erp.model.Employee;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
@@ -22,7 +22,7 @@ public class JwtTokenProvider {
     private String jwtSecret;
 
     @Value("${jwt.expirationMs}")
-    private long jwtExpiration;
+    private int jwtExpirationMs;
 
     private SecretKey key;
 
@@ -32,41 +32,28 @@ public class JwtTokenProvider {
     }
 
     public String generateToken(Authentication authentication) {
-        User user = (User) authentication.getPrincipal();
-        Date now = new Date();
-        Date expiryDate = new Date(now.getTime() + jwtExpiration);
-
-        String token = Jwts.builder()
-                .subject(user.getEmail())
-                .issuedAt(now)
-                .expiration(expiryDate)
+        Employee employee = (Employee) authentication.getPrincipal();
+        return Jwts.builder()
+                .subject(employee.getEmail())
+                .claim("role", employee.getAuthorities().iterator().next().getAuthority())
+                .issuedAt(new Date())
+                .expiration(new Date(new Date().getTime() + jwtExpirationMs))
                 .signWith(key)
                 .compact();
-        
-        log.debug("Generated JWT token for user: {}", user.getEmail());
-        return token;
     }
 
     public String getUsernameFromToken(String token) {
-        try {
-            Claims claims = Jwts.parser()
-                    .verifyWith(key).build()
-                    .parseSignedClaims(token)
-                    .getPayload();
-
-            String email = claims.getSubject();
-            log.debug("Extracted email from token: {}", email);
-            return email;
-        } catch (Exception e) {
-            log.error("Error extracting email from token", e);
-            throw e;
-        }
+        return Jwts.parser()
+                .verifyWith(key)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload()
+                .getSubject();
     }
 
     public boolean validateToken(String token) {
         try {
             Jwts.parser().verifyWith(key).build().parseSignedClaims(token);
-            log.debug("Token validation successful");
             return true;
         } catch (SecurityException e) {
             log.error("Invalid JWT signature: {}", e.getMessage());

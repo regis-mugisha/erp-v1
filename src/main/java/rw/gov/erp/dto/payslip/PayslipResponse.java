@@ -7,8 +7,8 @@ import java.math.BigDecimal;
 
 @Data
 public class PayslipResponse {
-    private String id;
-    private String employeeCode;
+    private Long id;
+    private Long employeeId;
     private String employeeName;
     private BigDecimal baseSalary;
     private BigDecimal houseAmount;
@@ -26,7 +26,7 @@ public class PayslipResponse {
     public static PayslipResponse fromEntity(Payslip payslip) {
         PayslipResponse response = new PayslipResponse();
         response.setId(payslip.getId());
-        response.setEmployeeCode(payslip.getEmployee().getCode());
+        response.setEmployeeId(payslip.getEmployee().getId());
         response.setEmployeeName(payslip.getEmployee().getFirstName() + " " + payslip.getEmployee().getLastName());
         response.setHouseAmount(payslip.getHouseAmount());
         response.setTransportAmount(payslip.getTransportAmount());

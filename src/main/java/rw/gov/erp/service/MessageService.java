@@ -4,7 +4,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import rw.gov.erp.dto.message.CreateMessageRequest;
 import rw.gov.erp.dto.message.MessageResponse;
+import rw.gov.erp.exception.BadRequestException;
 import rw.gov.erp.exception.NotFoundException;
 import rw.gov.erp.model.Message;
 import rw.gov.erp.model.Payslip;
@@ -36,6 +38,7 @@ public class MessageService {
 
     private final MessageRepository messageRepository;
     private final PayslipRepository payslipRepository;
+    private final EmailService emailService;
 
     /**
      * Creates messages for all approved payslips in a given month and year.
@@ -57,7 +60,7 @@ public class MessageService {
                     payslip.getMonth(),
                     payslip.getYear(),
                     payslip.getNetSalary(),
-                    payslip.getEmployee().getCode()
+                    payslip.getEmployee().getId()
             );
 
             Message messageEntity = new Message();
@@ -65,20 +68,21 @@ public class MessageService {
             messageEntity.setMessage(message);
             messageEntity.setMonth(month);
             messageEntity.setYear(year);
+            messageEntity.setEmailSent(false);
 
             messageRepository.save(messageEntity);
-            log.info("Created message for employee {} for {}/{}", payslip.getEmployee().getCode(), month, year);
+            log.info("Created message for employee {} for {}/{}", payslip.getEmployee().getId(), month, year);
         });
     }
 
     /**
      * Retrieves all messages for a specific employee.
      *
-     * @param employeeCode Employee's unique identifier
+     * @param employeeId Employee's unique identifier
      * @return List of MessageResponse objects
      */
-    public List<MessageResponse> getMessagesByEmployeeCode(String employeeCode) {
-        return messageRepository.findByEmployeeCode(employeeCode).stream()
+    public List<MessageResponse> getMessagesByEmployeeId(Long employeeId) {
+        return messageRepository.findByEmployeeId(employeeId).stream()
                 .map(MessageResponse::fromEntity)
                 .collect(Collectors.toList());
     }
@@ -116,7 +120,7 @@ public class MessageService {
      * @throws NotFoundException if message is not found
      */
     @Transactional
-    public void markMessageAsSent(String messageId) {
+    public void markMessageAsSent(Long messageId) {
         Message message = messageRepository.findById(messageId)
                 .orElseThrow(() -> {
                     log.warn("Message not found for marking as sent: {}", messageId);
@@ -126,5 +130,50 @@ public class MessageService {
         message.setEmailSent(true);
         messageRepository.save(message);
         log.info("Marked message as sent: {}", messageId);
+    }
+
+    @Transactional
+    public void sendPendingEmails() {
+        List<Message> unsentMessages = messageRepository.findByEmailSentFalse();
+        
+        for (Message message : unsentMessages) {
+            try {
+                emailService.sendEmail(
+                    message.getEmployee().getEmail(),
+                    "Salary Payment Notification",
+                    message.getMessage()
+                );
+                markMessageAsSent(message.getId());
+                log.info("Sent email for message: {}", message.getId());
+            } catch (Exception e) {
+                log.error("Failed to send email for message: {}", message.getId(), e);
+            }
+        }
+    }
+
+    public MessageResponse createMessage(CreateMessageRequest request) {
+        Payslip payslip = payslipRepository.findById(request.getPayslipId())
+                .orElseThrow(() -> new NotFoundException("Payslip not found"));
+
+        int month = payslip.getMonth();
+        int year = payslip.getYear();
+
+        // Check if message already exists
+        if (messageRepository.findByEmployeeIdAndMonthAndYear(payslip.getEmployee().getId(), month, year).isPresent()) {
+            log.warn("Message already exists for employee {} for {}/{}", payslip.getEmployee().getId(), month, year);
+            throw new BadRequestException("Message already exists for employee " + payslip.getEmployee().getId() + " for " + month + "/" + year);
+        }
+
+        // Create message
+        Message message = new Message();
+        message.setEmployee(payslip.getEmployee());
+        message.setMessage(request.getMessage());
+        message.setMonth(month);
+        message.setYear(year);
+
+        message = messageRepository.save(message);
+        log.info("Created message for employee {} for {}/{}", payslip.getEmployee().getId(), month, year);
+
+        return MessageResponse.fromEntity(message);
     }
 }

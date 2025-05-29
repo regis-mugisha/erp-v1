@@ -7,13 +7,13 @@ import java.math.BigDecimal;
 
 @Data
 public class DeductionResponse {
-    private String code;
+    private Long id;
     private String deductionName;
     private BigDecimal percentage;
 
     public static DeductionResponse fromEntity(Deduction deduction) {
         DeductionResponse response = new DeductionResponse();
-        response.setCode(deduction.getCode());
+        response.setId(deduction.getId());
         response.setDeductionName(deduction.getDeductionName());
         response.setPercentage(deduction.getPercentage());
         return response;

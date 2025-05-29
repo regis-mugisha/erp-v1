@@ -82,15 +82,15 @@ public class EmployeeService {
     /**
      * Retrieves a specific employee by their unique code.
      *
-     * @param code Employee's unique identifier
+     * @param id Employee's unique identifier
      * @return EmployeeResponse containing the employee's information
      * @throws NotFoundException if employee is not found
      */
-    public EmployeeResponse getEmployeeByCode(String code) {
-        return employeeRepository.findById(code)
+    public EmployeeResponse getEmployeeById(Long id) {
+        return employeeRepository.findById(id)
                 .map(EmployeeResponse::fromEntity)
                 .orElseThrow(() -> {
-                    log.warn("Employee not found: {}", code);
+                    log.warn("Employee not found: {}", id);
                     return new NotFoundException("Employee not found");
                 });
     }
@@ -99,16 +99,16 @@ public class EmployeeService {
      * Updates an existing employee's information.
      * Only updates password if a new one is provided.
      *
-     * @param code Employee's unique identifier
+     * @param id Employee's unique identifier
      * @param request Updated employee information
      * @return EmployeeResponse containing the updated employee information
      * @throws NotFoundException if employee is not found
      */
     @Transactional
-    public EmployeeResponse updateEmployee(String code, EmployeeRequest request) {
-        Employee employee = employeeRepository.findById(code)
+    public EmployeeResponse updateEmployee(Long id, EmployeeRequest request) {
+        Employee employee = employeeRepository.findById(id)
                 .orElseThrow(() -> {
-                    log.warn("Employee not found for update: {}", code);
+                    log.warn("Employee not found for update: {}", id);
                     return new NotFoundException("Employee not found");
                 });
 
@@ -121,23 +121,23 @@ public class EmployeeService {
         }
 
         Employee updated = employeeRepository.save(employee);
-        log.info("Updated employee: {}", code);
+        log.info("Updated employee: {}", id);
         return EmployeeResponse.fromEntity(updated);
     }
 
     /**
      * Deletes an employee record from the system.
      *
-     * @param code Employee's unique identifier
+     * @param id Employee's unique identifier
      * @throws NotFoundException if employee is not found
      */
     @Transactional
-    public void deleteEmployee(String code) {
-        if (!employeeRepository.existsById(code)) {
-            log.warn("Attempt to delete non-existent employee: {}", code);
+    public void deleteEmployee(Long id) {
+        if (!employeeRepository.existsById(id)) {
+            log.warn("Attempt to delete non-existent employee: {}", id);
             throw new NotFoundException("Employee not found");
         }
-        employeeRepository.deleteById(code);
-        log.info("Deleted employee: {}", code);
+        employeeRepository.deleteById(id);
+        log.info("Deleted employee: {}", id);
     }
 }

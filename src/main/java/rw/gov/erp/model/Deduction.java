@@ -11,8 +11,8 @@ import java.math.BigDecimal;
 public class Deduction {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private String code;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     @Column(nullable = false, unique = true)
     private String deductionName;

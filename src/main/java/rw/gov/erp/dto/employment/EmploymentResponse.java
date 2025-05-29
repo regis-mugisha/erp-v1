@@ -8,8 +8,8 @@ import java.time.LocalDate;
 
 @Data
 public class EmploymentResponse {
-    private String code;
-    private String employeeCode;
+    private Long id;
+    private Long employeeId;
     private String department;
     private String position;
     private BigDecimal baseSalary;
@@ -18,8 +18,8 @@ public class EmploymentResponse {
 
     public static EmploymentResponse fromEntity(Employment employment) {
         EmploymentResponse response = new EmploymentResponse();
-        response.setCode(employment.getCode());
-        response.setEmployeeCode(employment.getEmployee().getCode());
+        response.setId(employment.getId());
+        response.setEmployeeId(employment.getEmployee().getId());
         response.setDepartment(employment.getDepartment());
         response.setPosition(employment.getPosition());
         response.setBaseSalary(employment.getBaseSalary());

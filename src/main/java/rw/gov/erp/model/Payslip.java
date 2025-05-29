@@ -11,8 +11,8 @@ import java.math.BigDecimal;
 public class Payslip {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private String id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "employee_id", nullable = false)
@@ -54,6 +54,7 @@ public class Payslip {
 
     public enum PayslipStatus {
         PENDING,
-        PAID
+        PAID,
+        CANCELLED
     }
 }

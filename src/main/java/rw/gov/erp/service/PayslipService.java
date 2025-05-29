@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import rw.gov.erp.dto.payslip.PayslipResponse;
 import rw.gov.erp.exception.BadRequestException;
+import rw.gov.erp.exception.NotFoundException;
 import rw.gov.erp.model.Deduction;
 import rw.gov.erp.model.Employment;
 import rw.gov.erp.model.Payslip;
@@ -90,9 +91,9 @@ public class PayslipService {
      */
     private Payslip createPayslip(Employment employment, Integer month, Integer year, Map<String, BigDecimal> deductions) {
         // Check if payslip already exists
-        if (payslipRepository.findByEmployeeCodeAndMonthAndYear(employment.getEmployee().getCode(), month, year).isPresent()) {
-            log.warn("Payslip already exists for employee {} for {}/{}", employment.getEmployee().getCode(), month, year);
-            throw new BadRequestException("Payslip already exists for employee " + employment.getEmployee().getCode() + " for " + month + "/" + year);
+        if (payslipRepository.findByEmployeeIdAndMonthAndYear(employment.getEmployee().getId(), month, year).isPresent()) {
+            log.warn("Payslip already exists for employee {} for {}/{}", employment.getEmployee().getId(), month, year);
+            throw new BadRequestException("Payslip already exists for employee " + employment.getEmployee().getId() + " for " + month + "/" + year);
         }
 
         BigDecimal baseSalary = employment.getBaseSalary();
@@ -125,7 +126,7 @@ public class PayslipService {
         payslip.setYear(year);
 
         Payslip saved = payslipRepository.save(payslip);
-        log.info("Created payslip for employee {} for {}/{}", employment.getEmployee().getCode(), month, year);
+        log.info("Created payslip for employee {} for {}/{}", employment.getEmployee().getId(), month, year);
         return saved;
     }
 
@@ -145,11 +146,11 @@ public class PayslipService {
     /**
      * Retrieves all payslips for a specific employee.
      *
-     * @param employeeCode Employee's unique identifier
+     * @param employeeId Employee's unique identifier
      * @return List of PayslipResponse objects
      */
-    public List<PayslipResponse> getPayslipsByEmployeeCode(String employeeCode) {
-        return payslipRepository.findByEmployeeCode(employeeCode).stream()
+    public List<PayslipResponse> getPayslipsByEmployeeId(Long employeeId) {
+        return payslipRepository.findByEmployeeId(employeeId).stream()
                 .map(PayslipResponse::fromEntity)
                 .collect(Collectors.toList());
     }

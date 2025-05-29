@@ -12,8 +12,8 @@ import java.time.LocalDate;
 public class Employment {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private String code;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "employee_id", nullable = false)

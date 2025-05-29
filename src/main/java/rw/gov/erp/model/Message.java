@@ -11,8 +11,8 @@ import java.time.LocalDateTime;
 public class Message {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private String id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "employee_id", nullable = false)
@@ -22,13 +22,13 @@ public class Message {
     private String message;
 
     @Column(nullable = false)
-    private Integer month;
+    private int month;
 
     @Column(nullable = false)
-    private Integer year;
+    private int year;
 
     @Column(nullable = false)
-    private LocalDateTime sentAt = LocalDateTime.now();
+    private LocalDateTime createdAt = LocalDateTime.now();
 
     @Column(nullable = false)
     private boolean emailSent = false;

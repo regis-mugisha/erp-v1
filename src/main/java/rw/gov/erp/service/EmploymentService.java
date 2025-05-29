@@ -4,8 +4,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import rw.gov.erp.dto.employment.EmploymentRequest;
+import rw.gov.erp.dto.employment.CreateEmploymentRequest;
 import rw.gov.erp.dto.employment.EmploymentResponse;
+import rw.gov.erp.exception.BadRequestException;
 import rw.gov.erp.exception.NotFoundException;
 import rw.gov.erp.model.Employee;
 import rw.gov.erp.model.Employment;
@@ -24,20 +25,15 @@ public class EmploymentService {
     private final EmployeeRepository employeeRepository;
 
     @Transactional
-    public EmploymentResponse createEmployment(EmploymentRequest request) {
-        Employee employee = employeeRepository.findById(request.getEmployeeCode())
-                .orElseThrow(() -> {
-                    log.warn("Employee not found for employment: {}", request.getEmployeeCode());
-                    return new NotFoundException("Employee not found");
-                });
+    public EmploymentResponse createEmployment(CreateEmploymentRequest request) {
+        Employee employee = employeeRepository.findById(request.getEmployeeId())
+                .orElseThrow(() -> new NotFoundException("Employee not found"));
 
-        // Deactivate any existing active employment
-        employmentRepository.findByEmployeeCodeAndStatus(request.getEmployeeCode(), Employment.EmploymentStatus.ACTIVE)
-                .ifPresent(existingEmployment -> {
-                    existingEmployment.setStatus(Employment.EmploymentStatus.INACTIVE);
-                    employmentRepository.save(existingEmployment);
-                    log.info("Deactivated previous active employment for employee: {}", request.getEmployeeCode());
-                });
+        // Check if employee already has an active employment
+        if (employmentRepository.findByEmployeeIdAndStatus(employee.getId(), Employment.EmploymentStatus.ACTIVE).isPresent()) {
+            log.warn("Employee {} already has an active employment", employee.getId());
+            throw new BadRequestException("Employee already has an active employment");
+        }
 
         Employment employment = new Employment();
         employment.setEmployee(employee);
@@ -45,54 +41,33 @@ public class EmploymentService {
         employment.setPosition(request.getPosition());
         employment.setBaseSalary(request.getBaseSalary());
         employment.setJoiningDate(request.getJoiningDate());
+        employment.setStatus(Employment.EmploymentStatus.ACTIVE);
 
-        Employment saved = employmentRepository.save(employment);
-        log.info("Created new employment for employee: {}", request.getEmployeeCode());
-        return EmploymentResponse.fromEntity(saved);
+        employment = employmentRepository.save(employment);
+        log.info("Created employment for employee {}", employee.getId());
+
+        return EmploymentResponse.fromEntity(employment);
     }
 
-    public List<EmploymentResponse> getEmploymentsByEmployeeCode(String employeeCode) {
-        return employmentRepository.findByEmployeeCode(employeeCode).stream()
+    public List<EmploymentResponse> getEmploymentsByEmployeeId(Long employeeId) {
+        return employmentRepository.findByEmployeeId(employeeId).stream()
                 .map(EmploymentResponse::fromEntity)
                 .collect(Collectors.toList());
     }
 
-    public EmploymentResponse getActiveEmployment(String employeeCode) {
-        return employmentRepository.findByEmployeeCodeAndStatus(employeeCode, Employment.EmploymentStatus.ACTIVE)
+    public List<EmploymentResponse> getActiveEmployments() {
+        return employmentRepository.findByStatus(Employment.EmploymentStatus.ACTIVE).stream()
                 .map(EmploymentResponse::fromEntity)
-                .orElseThrow(() -> {
-                    log.warn("No active employment found for employee: {}", employeeCode);
-                    return new NotFoundException("No active employment found");
-                });
+                .collect(Collectors.toList());
     }
 
     @Transactional
-    public EmploymentResponse updateEmployment(String code, EmploymentRequest request) {
-        Employment employment = employmentRepository.findById(code)
-                .orElseThrow(() -> {
-                    log.warn("Employment not found for update: {}", code);
-                    return new NotFoundException("Employment not found");
-                });
-
-        employment.setDepartment(request.getDepartment());
-        employment.setPosition(request.getPosition());
-        employment.setBaseSalary(request.getBaseSalary());
-
-        Employment updated = employmentRepository.save(employment);
-        log.info("Updated employment: {}", code);
-        return EmploymentResponse.fromEntity(updated);
-    }
-
-    @Transactional
-    public void deactivateEmployment(String code) {
-        Employment employment = employmentRepository.findById(code)
-                .orElseThrow(() -> {
-                    log.warn("Employment not found for deactivation: {}", code);
-                    return new NotFoundException("Employment not found");
-                });
+    public void deactivateEmployment(Long employmentId) {
+        Employment employment = employmentRepository.findById(employmentId)
+                .orElseThrow(() -> new NotFoundException("Employment not found"));
 
         employment.setStatus(Employment.EmploymentStatus.INACTIVE);
         employmentRepository.save(employment);
-        log.info("Deactivated employment: {}", code);
+        log.info("Deactivated employment {}", employmentId);
     }
 }

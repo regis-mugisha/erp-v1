@@ -8,7 +8,7 @@ import java.util.List;
 
 @Data
 public class EmployeeResponse {
-    private String code;
+    private Long id;
     private String firstName;
     private String lastName;
     private String email;
@@ -19,7 +19,7 @@ public class EmployeeResponse {
 
     public static EmployeeResponse fromEntity(Employee employee) {
         EmployeeResponse response = new EmployeeResponse();
-        response.setCode(employee.getCode());
+        response.setId(employee.getId());
         response.setFirstName(employee.getFirstName());
         response.setLastName(employee.getLastName());
         response.setEmail(employee.getEmail());
