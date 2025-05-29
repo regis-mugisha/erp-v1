@@ -28,6 +28,7 @@ public class PayslipResponse {
         response.setId(payslip.getId());
         response.setEmployeeId(payslip.getEmployee().getId());
         response.setEmployeeName(payslip.getEmployee().getFirstName() + " " + payslip.getEmployee().getLastName());
+        response.setBaseSalary(payslip.getBaseSalary());
         response.setHouseAmount(payslip.getHouseAmount());
         response.setTransportAmount(payslip.getTransportAmount());
         response.setEmployeeTaxedAmount(payslip.getEmployeeTaxedAmount());

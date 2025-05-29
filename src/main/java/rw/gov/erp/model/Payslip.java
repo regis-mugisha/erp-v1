@@ -19,6 +19,9 @@ public class Payslip {
     private Employee employee;
 
     @Column(nullable = false)
+    private BigDecimal baseSalary;
+
+    @Column(nullable = false)
     private BigDecimal houseAmount;
 
     @Column(nullable = false)

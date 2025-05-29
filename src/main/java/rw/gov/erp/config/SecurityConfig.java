@@ -35,7 +35,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/employees/**").hasAnyRole("ADMIN", "MANAGER")
                         .requestMatchers("/api/employments/**").hasAnyRole("ADMIN", "MANAGER")
                         .requestMatchers("/api/deductions/**").hasRole("ADMIN")
-                        .requestMatchers("/api/payslips/process").hasRole("MANAGER")
+                        .requestMatchers("/api/payslips/process").hasAnyRole("ADMIN", "MANAGER")
                         .requestMatchers("/api/payslips/approve").hasRole("ADMIN")
                         .requestMatchers("/api/payslips/employee/**").hasAnyRole("ADMIN", "MANAGER", "EMPLOYEE")
                         .anyRequest().authenticated()

@@ -97,6 +97,10 @@ public class PayslipService {
         }
 
         BigDecimal baseSalary = employment.getBaseSalary();
+        if (baseSalary == null || baseSalary.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new BadRequestException("Invalid base salary for employee " + employment.getEmployee().getId());
+        }
+
         BigDecimal houseAmount = calculateAmount(baseSalary, deductions.get("Housing"));
         BigDecimal transportAmount = calculateAmount(baseSalary, deductions.get("Transport"));
         BigDecimal grossSalary = baseSalary.add(houseAmount).add(transportAmount);
@@ -114,6 +118,7 @@ public class PayslipService {
 
         Payslip payslip = new Payslip();
         payslip.setEmployee(employment.getEmployee());
+        payslip.setBaseSalary(baseSalary);
         payslip.setHouseAmount(houseAmount);
         payslip.setTransportAmount(transportAmount);
         payslip.setEmployeeTaxedAmount(employeeTaxedAmount);
@@ -124,6 +129,7 @@ public class PayslipService {
         payslip.setNetSalary(netSalary);
         payslip.setMonth(month);
         payslip.setYear(year);
+        payslip.setStatus(Payslip.PayslipStatus.PENDING);
 
         Payslip saved = payslipRepository.save(payslip);
         log.info("Created payslip for employee {} for {}/{}", employment.getEmployee().getId(), month, year);
