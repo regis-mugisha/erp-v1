@@ -48,6 +48,7 @@ public class PayslipService {
     private final PayslipRepository payslipRepository;
     private final EmploymentRepository employmentRepository;
     private final DeductionRepository deductionRepository;
+    private final MessageService messageService;
 
     /**
      * Processes payslips for all active employees for a given month and year.
@@ -187,6 +188,8 @@ public class PayslipService {
         payslips.forEach(payslip -> payslip.setStatus(Payslip.PayslipStatus.PAID));
         payslipRepository.saveAll(payslips);
         log.info("Approved payslips for month: {}, year: {}", month, year);
+
+        messageService.createMessagesForApprovedPayslips(month, year);
     }
 
     public byte[] generatePayslipPdf(Long payslipId) {
