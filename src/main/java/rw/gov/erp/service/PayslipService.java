@@ -188,4 +188,11 @@ public class PayslipService {
         payslipRepository.saveAll(payslips);
         log.info("Approved payslips for month: {}, year: {}", month, year);
     }
+
+    public byte[] generatePayslipPdf(Long payslipId) {
+        Payslip payslip = payslipRepository.findById(payslipId)
+                .orElseThrow(() -> new NotFoundException("Payslip not found with id: " + payslipId));
+        // TODO: Implement PDF generation logic here
+        return new byte[0]; // Placeholder return
+    }
 }

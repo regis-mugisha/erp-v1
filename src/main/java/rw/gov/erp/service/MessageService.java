@@ -139,7 +139,7 @@ public class MessageService {
         for (Message message : unsentMessages) {
             try {
                 emailService.sendEmail(
-                    message.getEmployee().getEmail(),
+                    "mugisharegis72@gmail.com", // Admin's Mailtrap account
                     "Salary Payment Notification",
                     message.getMessage()
                 );

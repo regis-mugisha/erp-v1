@@ -55,4 +55,14 @@ public class PayslipController {
         payslipService.approvePayslips(month, year);
         return ResponseEntity.ok().build();
     }
+
+    @Operation(summary = "Download payslip", description = "Downloads a payslip as a PDF file")
+    @GetMapping("/{payslipId}/download")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER') or @securityService.isCurrentUser(#payslipId)")
+    public ResponseEntity<byte[]> downloadPayslip(@PathVariable Long payslipId) {
+        byte[] pdfBytes = payslipService.generatePayslipPdf(payslipId);
+        return ResponseEntity.ok()
+                .header("Content-Disposition", "attachment; filename=payslip.pdf")
+                .body(pdfBytes);
+    }
 } 
