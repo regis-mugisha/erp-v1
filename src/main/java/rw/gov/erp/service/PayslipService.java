@@ -190,6 +190,7 @@ public class PayslipService {
         log.info("Approved payslips for month: {}, year: {}", month, year);
 
         messageService.createMessagesForApprovedPayslips(month, year);
+        messageService.sendPendingEmails();
     }
 
     public byte[] generatePayslipPdf(Long payslipId) {
